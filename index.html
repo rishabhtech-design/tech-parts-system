@@ -183,7 +183,7 @@
 
     <div id="loginSection" class="login-area">
         <h3>🔐 Daily Access (OTP)</h3>
-        <p>Enter your registered email address. OTP will be sent to admin for verification.</p>
+        <p>Enter your registered email address to receive OTP.</p>
         <div class="input-group">
             <div class="input-field">
                 <label>📧 Your Registered Email</label>
@@ -191,10 +191,10 @@
             </div>
             <div class="input-field">
                 <label>🔑 OTP Code</label>
-                <input type="text" id="otpCode" placeholder="6-digit code from admin">
+                <input type="text" id="otpCode" placeholder="6-digit code">
             </div>
             <div style="display: flex; gap: 10px; align-items: flex-end;">
-                <button id="sendOtpBtn" class="otp-btn">📨 Request OTP</button>
+                <button id="sendOtpBtn" class="otp-btn">📨 Get OTP</button>
                 <button id="verifyLoginBtn">✅ Login</button>
             </div>
         </div>
@@ -244,24 +244,20 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
     // ============================================================
-    // CONFIGURATION - WITH YOUR EMAILS
+    // AUTHORIZED EMAILS - ONLY THESE CAN ACCESS
     // ============================================================
     
-    const EMAILJS_PUBLIC_KEY = "n4Kn8OfGsG_ySRpZP";
-    const EMAILJS_SERVICE_ID = "service_okw2upd";
-    const EMAILJS_TEMPLATE_ID = "template_8tn2kap";
-    const ADMIN_EMAIL = "sparepartsrish@gmail.com";
-    
-    // AUTHORIZED TECHNICIANS - ONLY THESE EMAILS CAN ACCESS
     const AUTHORIZED_EMAILS = [
         "ifbrishabh@gmail.com",
         "sparepartsrish@gmail.com"
     ];
     
     // ============================================================
+    
+    let masterParts = [];
+    let isLoggedIn = false;
     
     function isWithinAccessTime() {
         const now = new Date();
@@ -291,11 +287,6 @@
     function isAuthorizedEmail(email) {
         return AUTHORIZED_EMAILS.includes(email.toLowerCase());
     }
-    
-    emailjs.init(EMAILJS_PUBLIC_KEY);
-    
-    let masterParts = [];
-    let isLoggedIn = false;
     
     async function loadMasterData() {
         try {
@@ -350,7 +341,8 @@
         return data.otp === enteredOtp;
     }
     
-    document.getElementById("sendOtpBtn").addEventListener("click", async () => {
+    // Send OTP - POPUP MODE (no email needed)
+    document.getElementById("sendOtpBtn").addEventListener("click", () => {
         if (!isWithinAccessTime()) {
             document.getElementById("loginMessage").innerHTML = `<span class="warning">⏰ Access only between 9:30 AM to 6:00 PM.</span>`;
             return;
@@ -370,17 +362,9 @@
         const otp = generateOTP();
         storeOTP(technicianEmail, otp);
         
-        try {
-            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                to_email: ADMIN_EMAIL,
-                technician_email: technicianEmail,
-                otp: otp
-            });
-            document.getElementById("loginMessage").innerHTML = `<span class="success">✅ OTP request sent to admin (${ADMIN_EMAIL}). Admin will share the code with you.</span>`;
-        } catch (error) {
-            console.error("Email error:", error);
-            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Failed to send OTP. Check EmailJS setup.</span>`;
-        }
+        // Show OTP in popup
+        alert(`🔐 Your OTP code for ${technicianEmail} is: ${otp}\n\nThis code is valid for 24 hours.`);
+        document.getElementById("loginMessage").innerHTML = `<span class="success">✅ OTP generated! Check the popup window for your code.</span>`;
     });
     
     document.getElementById("verifyLoginBtn").addEventListener("click", () => {
@@ -410,7 +394,7 @@
             document.getElementById("searchSection").style.display = "block";
             document.getElementById("loginMessage").innerHTML = "";
         } else {
-            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Invalid or expired OTP. Request new code from admin.</span>`;
+            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Invalid or expired OTP. Get a new OTP.</span>`;
         }
     });
     
