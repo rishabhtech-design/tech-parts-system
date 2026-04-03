@@ -45,10 +45,6 @@
             font-size: 0.8rem;
             font-weight: 500;
         }
-        .time-badge {
-            background: #fef3c7;
-            color: #92400e;
-        }
         .login-area, .search-area {
             background: #f8fafc;
             border-radius: 28px;
@@ -251,19 +247,17 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
     // ============================================================
-    // CONFIGURATION - REPLACE THE VALUES BELOW
+    // CONFIGURATION - WITH YOUR EMAILS
     // ============================================================
     
     const EMAILJS_PUBLIC_KEY = "n4Kn8OfGsG_ySRpZP";
     const EMAILJS_SERVICE_ID = "service_okw2upd";
     const EMAILJS_TEMPLATE_ID = "template_8tn2kap";
+    const ADMIN_EMAIL = "sparepartsrish@gmail.com";
     
-    // ONLY THESE 5 EMAILS CAN ACCESS
+    // AUTHORIZED TECHNICIANS - ONLY THESE EMAILS CAN ACCESS
     const AUTHORIZED_EMAILS = [
-        "sparepartsrish@gmail.com",
-        "sparepartsrisha@gmail.com",
-        "sarepartsrisha@gmail.com",
-        "sparepartsrih@gmail.com",
+        "ifbrishabh@gmail.com",
         "sparepartsrish@gmail.com"
     ];
     
@@ -384,6 +378,7 @@
             });
             document.getElementById("loginMessage").innerHTML = `<span class="success">✅ OTP request sent to admin (${ADMIN_EMAIL}). Admin will share the code with you.</span>`;
         } catch (error) {
+            console.error("Email error:", error);
             document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Failed to send OTP. Check EmailJS setup.</span>`;
         }
     });
