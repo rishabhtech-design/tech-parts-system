@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Technician Parts Lookup System</title>
+    <title>Spare Parts Directory</title>
     <style>
         * {
             box-sizing: border-box;
@@ -150,7 +150,7 @@
 
 <div class="container" id="app">
     <h1>
-        🔧 Technician Parts Assistant
+        📚 Spare Parts Directory
         <span class="badge" id="authStatus">🔒 Not Logged In</span>
     </h1>
 
@@ -158,16 +158,16 @@
         ⏰ Access is only allowed between <strong>9:30 AM to 6:00 PM</strong>
     </div>
 
-    <!-- LOGIN SECTION - Just name, no dropdown -->
+    <!-- LOGIN SECTION - Anyone can enter any name -->
     <div id="loginSection" class="login-area">
-        <h3>🔐 Technician Login</h3>
-        <p>Enter your name to access the parts system</p>
+        <h3>🔐 Login</h3>
+        <p>Enter your name to access the spare parts directory</p>
         <div class="input-group">
             <div class="input-field">
                 <label>👤 Your Name</label>
                 <input type="text" id="techName" placeholder="Enter your name">
             </div>
-            <button id="loginBtn" class="login-btn">🔓 Access System</button>
+            <button id="loginBtn" class="login-btn">🔓 Access Directory</button>
         </div>
         <div id="loginMessage" class="status"></div>
     </div>
@@ -181,13 +181,13 @@
             </div>
             <div class="input-group">
                 <div class="input-field">
-                    <label>📦 Model Name (type to see dropdown)</label>
+                    <label>📦 Model Name</label>
                     <input type="text" id="modelSearch" placeholder="Type model name..." list="modelSuggestions" autocomplete="off">
                     <datalist id="modelSuggestions"></datalist>
-                    <div class="info">💡 Type or click dropdown arrow to see all models</div>
+                    <div class="info">💡 Type to see matching models</div>
                 </div>
                 <div class="input-field">
-                    <label>🔧 Part Name (type to see dropdown)</label>
+                    <label>🔧 Part Name</label>
                     <div style="display: flex; gap: 8px;">
                         <input type="text" id="partSearch" placeholder="Type or speak part name..." list="partSuggestions" autocomplete="off" style="flex:4">
                         <button id="voiceSearchBtn" class="voice-btn">🎤 Speak</button>
@@ -215,22 +215,15 @@
 
 <script>
     // ============================================================
-    // AUTHORIZED TECHNICIANS - ADD NAMES HERE
-    // ============================================================
-    const AUTHORIZED_TECHS = [
-        "Rishabh",
-        "Rajesh",
-        "Suresh",
-        "Mahesh",
-        "Dinesh"
-    ];
-    
+    // SPARE PARTS DIRECTORY - OPEN TO ALL
+    // Anyone can enter any name and get access
     // ============================================================
     
     let masterParts = [];
     let isLoggedIn = false;
-    let currentTech = "";
+    let currentUser = "";
     
+    // Time restriction: 9:30 AM to 6:00 PM
     function isWithinAccessTime() {
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -249,10 +242,7 @@
         return allowed;
     }
     
-    function isAuthorized(name) {
-        return AUTHORIZED_TECHS.includes(name);
-    }
-    
+    // Load parts data from JSON file
     async function loadData() {
         try {
             const response = await fetch('./oven_data.json');
@@ -266,10 +256,10 @@
             
             const models = [...new Set(masterParts.map(p => p.model))].sort();
             document.getElementById("modelSuggestions").innerHTML = models.map(m => `<option value="${m}">`).join('');
-            document.getElementById("searchStatus").innerHTML = `<span class="success">✅ Loaded ${masterParts.length} parts from ${models.length} models</span>`;
+            document.getElementById("searchStatus").innerHTML = `<span class="success">✅ Loaded ${masterParts.length} parts</span>`;
             updatePartDropdown();
         } catch(err) {
-            document.getElementById("searchStatus").innerHTML = `<span class="error">❌ oven_data.json missing</span>`;
+            document.getElementById("searchStatus").innerHTML = `<span class="error">❌ Data file missing</span>`;
         }
     }
     
@@ -285,17 +275,16 @@
         document.getElementById("partSuggestions").innerHTML = parts.map(p => `<option value="${p}">`).join('');
     }
     
-    // LOGIN - Just check name, no OTP
+    // LOGIN - Anyone can enter any name
     document.getElementById("loginBtn").onclick = () => {
         if (!checkTime()) return;
-        const techName = document.getElementById("techName").value.trim();
-        if (!techName) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Enter your name</span>';
-        if (!isAuthorized(techName)) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Name not authorized. Contact admin.</span>';
+        const userName = document.getElementById("techName").value.trim();
+        if (!userName) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Enter your name</span>';
         
-        currentTech = techName;
+        currentUser = userName;
         isLoggedIn = true;
-        sessionStorage.setItem("loggedIn", JSON.stringify({ name: techName, time: Date.now() }));
-        document.getElementById("authStatus").innerHTML = `✅ Logged: ${techName}`;
+        sessionStorage.setItem("loggedIn", JSON.stringify({ name: userName, time: Date.now() }));
+        document.getElementById("authStatus").innerHTML = `✅ Welcome, ${userName}`;
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("searchSection").style.display = "block";
         document.getElementById("resultsBody").innerHTML = '<tr><td colspan="3" style="text-align:center;">🔍 Select a model and part, then click Search</td></tr>';
@@ -336,7 +325,7 @@
     }
     
     function voiceSearch() {
-        if (!('webkitSpeechRecognition' in window)) return alert("Use Chrome browser");
+        if (!('webkitSpeechRecognition' in window)) return alert("Use Chrome browser for voice search");
         const recognition = new webkitSpeechRecognition();
         recognition.lang = 'en-US';
         recognition.onresult = (e) => {
@@ -357,10 +346,10 @@
     
     // Restore session
     const saved = JSON.parse(sessionStorage.getItem("loggedIn") || '{}');
-    if (saved.name && saved.time > Date.now() - 86400000 && isAuthorized(saved.name) && isWithinAccessTime()) {
+    if (saved.name && saved.time > Date.now() - 86400000 && isWithinAccessTime()) {
         isLoggedIn = true;
-        currentTech = saved.name;
-        document.getElementById("authStatus").innerHTML = `✅ Logged: ${saved.name}`;
+        currentUser = saved.name;
+        document.getElementById("authStatus").innerHTML = `✅ Welcome, ${saved.name}`;
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("searchSection").style.display = "block";
     }
