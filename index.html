@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Technician Parts Lookup System</title>
+    <title>Technician Parts Lookup System - Telegram OTP</title>
     <style>
         * {
             box-sizing: border-box;
@@ -144,9 +144,14 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        @media (max-width: 700px) {
-            .container { padding: 16px; }
-            th, td { font-size: 0.8rem; }
+        .telegram-setup {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -165,7 +170,12 @@
     <!-- LOGIN SECTION -->
     <div id="loginSection" class="login-area">
         <h3>🔐 Login with OTP</h3>
-        <p>Enter your registered mobile number to receive OTP</p>
+        <p>Enter your registered mobile number. OTP will be sent to your Telegram.</p>
+        
+        <div class="telegram-setup" id="telegramSetupMsg">
+            📱 <strong>First time?</strong> Open Telegram, search for <strong>@rishabh_parts_bot</strong> and send <strong>/start</strong>
+        </div>
+        
         <div class="input-group">
             <div class="input-field">
                 <label>📱 Mobile Number</label>
@@ -176,7 +186,7 @@
                 <label>🔑 OTP Code</label>
                 <input type="text" id="otpCode" placeholder="6-digit code">
             </div>
-            <button id="sendOtpBtn" class="otp-btn">📨 Get OTP</button>
+            <button id="sendOtpBtn" class="otp-btn">📨 Send OTP to Telegram</button>
             <button id="verifyLoginBtn">✅ Login</button>
         </div>
         <div id="loginMessage" class="status"></div>
@@ -225,6 +235,13 @@
 
 <script>
     // ============================================================
+    // TELEGRAM BOT CONFIGURATION - YOUR DETAILS ADDED
+    // ============================================================
+    const BOT_TOKEN = "8562860281:AAF3SbcPdHpPV9efcp9DqIME6oFapr2VQ3Y";
+    const YOUR_CHAT_ID = "8439602829";
+    const BOT_USERNAME = "rishabh_parts_bot";
+    
+    // ============================================================
     // AUTHORIZED MOBILE NUMBERS - ONLY THESE CAN LOGIN
     // ============================================================
     const AUTHORIZED_PHONES = [
@@ -239,6 +256,13 @@
     
     let masterParts = [];
     let isLoggedIn = false;
+    
+    // Store Telegram Chat IDs for each phone number
+    let telegramChatIds = JSON.parse(localStorage.getItem("telegramChatIds") || "{}");
+    
+    // Set your own chat ID
+    telegramChatIds["+919971549285"] = YOUR_CHAT_ID;
+    localStorage.setItem("telegramChatIds", JSON.stringify(telegramChatIds));
     
     // TIME RESTRICTION: 9:30 AM to 6:00 PM
     function isWithinAccessTime() {
@@ -272,6 +296,19 @@
         document.getElementById("phoneSuggestions").innerHTML = AUTHORIZED_PHONES.map(p => `<option value="${p}">`).join('');
     }
     
+    // Function to send message to Telegram
+    async function sendTelegramMessage(chatId, message) {
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.ok === true;
+        } catch (error) {
+            console.error("Telegram Error:", error);
+            return false;
+        }
+    }
+    
     // LOAD PARTS DATA
     async function loadData() {
         try {
@@ -284,26 +321,23 @@
                 code: (row["PART CODE"] || "").trim()
             })).filter(p => p.model && p.part && p.code);
             
-            // Build model dropdown (unique models)
             const models = [...new Set(masterParts.map(p => p.model))].sort();
             document.getElementById("modelSuggestions").innerHTML = models.map(m => `<option value="${m}">`).join('');
             
             document.getElementById("searchStatus").innerHTML = `<span class="success">✅ Loaded ${masterParts.length} parts from ${models.length} models</span>`;
+            updatePartDropdown();
         } catch(err) {
             document.getElementById("searchStatus").innerHTML = `<span class="error">❌ oven_data.json missing - upload it to GitHub</span>`;
         }
     }
     
-    // Update part dropdown based on selected model (like Excel filter)
     function updatePartDropdown() {
         const selectedModel = document.getElementById("modelSearch").value.trim();
         let parts = [];
         
         if (selectedModel) {
-            // Show only parts from selected model
             parts = [...new Set(masterParts.filter(p => p.model.toLowerCase() === selectedModel.toLowerCase()).map(p => p.part))];
         } else {
-            // Show all parts if no model selected
             parts = [...new Set(masterParts.map(p => p.part))];
         }
         parts.sort();
@@ -316,7 +350,7 @@
     }
     
     function storeOTP(phone, otp) {
-        localStorage.setItem(`otp_${phone}`, JSON.stringify({ otp, expiry: Date.now() + 300000 })); // 5 minutes expiry
+        localStorage.setItem(`otp_${phone}`, JSON.stringify({ otp, expiry: Date.now() + 300000 }));
     }
     
     function verifyOTP(phone, otp) {
@@ -324,17 +358,33 @@
         return data.otp === otp && data.expiry > Date.now();
     }
     
-    // EVENTS
-    document.getElementById("sendOtpBtn").onclick = () => {
+    // SEND OTP VIA TELEGRAM
+    document.getElementById("sendOtpBtn").onclick = async () => {
         if (!checkTime()) return;
         const phone = document.getElementById("techPhone").value.trim();
         if (!phone) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Enter mobile number</span>';
         if (!isAuthorized(phone)) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Number not authorized</span>';
         
+        // Get chat ID for this phone number
+        let chatId = telegramChatIds[phone];
+        
+        if (!chatId) {
+            document.getElementById("loginMessage").innerHTML = `<span class="warning">⚠️ Please open Telegram, search for @${BOT_USERNAME}, send "${phone}" as a message, then try again.</span>`;
+            return;
+        }
+        
         const otp = generateOTP();
         storeOTP(phone, otp);
-        alert(`🔐 Your OTP is: ${otp}\nValid for 5 minutes`);
-        document.getElementById("loginMessage").innerHTML = '<span class="success">✅ OTP sent! Check popup.</span>';
+        
+        const message = `🔐 Your OTP for Parts System is: ${otp}\n\nValid for 5 minutes.`;
+        const sent = await sendTelegramMessage(chatId, message);
+        
+        if (sent) {
+            document.getElementById("loginMessage").innerHTML = '<span class="success">✅ OTP sent to your Telegram! Check the app.</span>';
+        } else {
+            alert(`🔐 OTP: ${otp}\nValid for 5 minutes`);
+            document.getElementById("loginMessage").innerHTML = '<span class="warning">⚠️ Telegram issue. OTP shown in popup.</span>';
+        }
     };
     
     document.getElementById("verifyLoginBtn").onclick = () => {
@@ -371,7 +421,7 @@
         if (part) results = results.filter(p => p.part.toLowerCase().includes(part));
         
         if (results.length === 0) {
-            document.getElementById("resultsBody").innerHTML = '<tr><td colspan="3">🔍 No results found</td></tr>';
+            document.getElementById("resultsBody").innerHTML = '<td><td colspan="3">🔍 No results found</td></tr>';
             return;
         }
         
