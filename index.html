@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Technician Parts Lookup System - Telegram OTP</title>
+    <title>Technician Parts Lookup System</title>
     <style>
         * {
             box-sizing: border-box;
@@ -85,7 +85,7 @@
         button:hover {
             background: #0f172a;
         }
-        .otp-btn {
+        .login-btn {
             background: #2c3e66;
         }
         .voice-btn {
@@ -108,6 +108,7 @@
             overflow-x: auto;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
+            margin-top: 20px;
         }
         table {
             width: 100%;
@@ -134,7 +135,6 @@
         }
         .error { color: #b91c1c; }
         .success { color: #15803d; }
-        .warning { color: #b45309; }
         .info { color: #2563eb; font-size: 0.8rem; margin-top: 5px; }
         .time-restriction {
             background: #fef3c7;
@@ -143,15 +143,6 @@
             padding: 12px 16px;
             margin-bottom: 20px;
             text-align: center;
-        }
-        .telegram-setup {
-            background: #e6f7ff;
-            border: 1px solid #91d5ff;
-            border-radius: 16px;
-            padding: 12px 16px;
-            margin-top: 15px;
-            text-align: center;
-            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -167,27 +158,16 @@
         ⏰ Access is only allowed between <strong>9:30 AM to 6:00 PM</strong>
     </div>
 
-    <!-- LOGIN SECTION -->
+    <!-- LOGIN SECTION - Just name, no dropdown -->
     <div id="loginSection" class="login-area">
-        <h3>🔐 Login with OTP</h3>
-        <p>Enter your registered mobile number. OTP will be sent to your Telegram.</p>
-        
-        <div class="telegram-setup" id="telegramSetupMsg">
-            📱 <strong>First time?</strong> Open Telegram, search for <strong>@rishabh_parts_bot</strong> and send <strong>/start</strong>
-        </div>
-        
+        <h3>🔐 Technician Login</h3>
+        <p>Enter your name to access the parts system</p>
         <div class="input-group">
             <div class="input-field">
-                <label>📱 Mobile Number</label>
-                <input type="tel" id="techPhone" placeholder="+91 9876543210" list="phoneSuggestions">
-                <datalist id="phoneSuggestions"></datalist>
+                <label>👤 Your Name</label>
+                <input type="text" id="techName" placeholder="Enter your name">
             </div>
-            <div class="input-field">
-                <label>🔑 OTP Code</label>
-                <input type="text" id="otpCode" placeholder="6-digit code">
-            </div>
-            <button id="sendOtpBtn" class="otp-btn">📨 Send OTP to Telegram</button>
-            <button id="verifyLoginBtn">✅ Login</button>
+            <button id="loginBtn" class="login-btn">🔓 Access System</button>
         </div>
         <div id="loginMessage" class="status"></div>
     </div>
@@ -226,7 +206,7 @@
                     <tr><th>MODEL NAME</th><th>PART NAME</th><th>PART CODE</th></tr>
                 </thead>
                 <tbody id="resultsBody">
-                    <tr><td colspan="3" style="text-align:center;">✨ Login and search to see part codes ✨</td></tr>
+                    <tr><td colspan="3" style="text-align:center;">🔍 Select a model and part, then click Search</td></tr>
                 </tbody>
             20
         </div>
@@ -235,41 +215,25 @@
 
 <script>
     // ============================================================
-    // TELEGRAM BOT CONFIGURATION - YOUR DETAILS ADDED
+    // AUTHORIZED TECHNICIANS - ADD NAMES HERE
     // ============================================================
-    const BOT_TOKEN = "8562860281:AAF3SbcPdHpPV9efcp9DqIME6oFapr2VQ3Y";
-    const YOUR_CHAT_ID = "8439602829";
-    const BOT_USERNAME = "rishabh_parts_bot";
-    
-    // ============================================================
-    // AUTHORIZED MOBILE NUMBERS - ONLY THESE CAN LOGIN
-    // ============================================================
-    const AUTHORIZED_PHONES = [
-        "+919971549285",   // Your number
-        "+919876543211",   // Add more technician numbers here
-        "+919876543212",   // Add more technician numbers here
-        "+919876543213",   // Add more technician numbers here
-        "+919876543214"    // Add more technician numbers here
+    const AUTHORIZED_TECHS = [
+        "Rishabh",
+        "Rajesh",
+        "Suresh",
+        "Mahesh",
+        "Dinesh"
     ];
     
     // ============================================================
     
     let masterParts = [];
     let isLoggedIn = false;
+    let currentTech = "";
     
-    // Store Telegram Chat IDs for each phone number
-    let telegramChatIds = JSON.parse(localStorage.getItem("telegramChatIds") || "{}");
-    
-    // Set your own chat ID
-    telegramChatIds["+919971549285"] = YOUR_CHAT_ID;
-    localStorage.setItem("telegramChatIds", JSON.stringify(telegramChatIds));
-    
-    // TIME RESTRICTION: 9:30 AM to 6:00 PM
     function isWithinAccessTime() {
         const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const currentMinutes = hours * 60 + minutes;
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
         return currentMinutes >= (9 * 60 + 30) && currentMinutes <= (18 * 60);
     }
     
@@ -277,39 +241,18 @@
         const allowed = isWithinAccessTime();
         if (!allowed) {
             document.getElementById("timeRestrictionMsg").style.display = "block";
-            document.getElementById("sendOtpBtn").disabled = true;
-            document.getElementById("verifyLoginBtn").disabled = true;
+            document.getElementById("loginBtn").disabled = true;
         } else {
             document.getElementById("timeRestrictionMsg").style.display = "none";
-            document.getElementById("sendOtpBtn").disabled = false;
-            document.getElementById("verifyLoginBtn").disabled = false;
+            document.getElementById("loginBtn").disabled = false;
         }
         return allowed;
     }
     
-    function isAuthorized(phone) {
-        return AUTHORIZED_PHONES.includes(phone);
+    function isAuthorized(name) {
+        return AUTHORIZED_TECHS.includes(name);
     }
     
-    // Build phone suggestions dropdown
-    function buildPhoneSuggestions() {
-        document.getElementById("phoneSuggestions").innerHTML = AUTHORIZED_PHONES.map(p => `<option value="${p}">`).join('');
-    }
-    
-    // Function to send message to Telegram
-    async function sendTelegramMessage(chatId, message) {
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.ok === true;
-        } catch (error) {
-            console.error("Telegram Error:", error);
-            return false;
-        }
-    }
-    
-    // LOAD PARTS DATA
     async function loadData() {
         try {
             const response = await fetch('./oven_data.json');
@@ -323,18 +266,16 @@
             
             const models = [...new Set(masterParts.map(p => p.model))].sort();
             document.getElementById("modelSuggestions").innerHTML = models.map(m => `<option value="${m}">`).join('');
-            
             document.getElementById("searchStatus").innerHTML = `<span class="success">✅ Loaded ${masterParts.length} parts from ${models.length} models</span>`;
             updatePartDropdown();
         } catch(err) {
-            document.getElementById("searchStatus").innerHTML = `<span class="error">❌ oven_data.json missing - upload it to GitHub</span>`;
+            document.getElementById("searchStatus").innerHTML = `<span class="error">❌ oven_data.json missing</span>`;
         }
     }
     
     function updatePartDropdown() {
         const selectedModel = document.getElementById("modelSearch").value.trim();
         let parts = [];
-        
         if (selectedModel) {
             parts = [...new Set(masterParts.filter(p => p.model.toLowerCase() === selectedModel.toLowerCase()).map(p => p.part))];
         } else {
@@ -344,60 +285,20 @@
         document.getElementById("partSuggestions").innerHTML = parts.map(p => `<option value="${p}">`).join('');
     }
     
-    // OTP FUNCTIONS
-    function generateOTP() {
-        return Math.floor(100000 + Math.random() * 900000).toString();
-    }
-    
-    function storeOTP(phone, otp) {
-        localStorage.setItem(`otp_${phone}`, JSON.stringify({ otp, expiry: Date.now() + 300000 }));
-    }
-    
-    function verifyOTP(phone, otp) {
-        const data = JSON.parse(localStorage.getItem(`otp_${phone}`) || '{}');
-        return data.otp === otp && data.expiry > Date.now();
-    }
-    
-    // SEND OTP VIA TELEGRAM
-    document.getElementById("sendOtpBtn").onclick = async () => {
+    // LOGIN - Just check name, no OTP
+    document.getElementById("loginBtn").onclick = () => {
         if (!checkTime()) return;
-        const phone = document.getElementById("techPhone").value.trim();
-        if (!phone) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Enter mobile number</span>';
-        if (!isAuthorized(phone)) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Number not authorized</span>';
+        const techName = document.getElementById("techName").value.trim();
+        if (!techName) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Enter your name</span>';
+        if (!isAuthorized(techName)) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Name not authorized. Contact admin.</span>';
         
-        // Get chat ID for this phone number
-        let chatId = telegramChatIds[phone];
-        
-        if (!chatId) {
-            document.getElementById("loginMessage").innerHTML = `<span class="warning">⚠️ Please open Telegram, search for @${BOT_USERNAME}, send "${phone}" as a message, then try again.</span>`;
-            return;
-        }
-        
-        const otp = generateOTP();
-        storeOTP(phone, otp);
-        
-        const message = `🔐 Your OTP for Parts System is: ${otp}\n\nValid for 5 minutes.`;
-        const sent = await sendTelegramMessage(chatId, message);
-        
-        if (sent) {
-            document.getElementById("loginMessage").innerHTML = '<span class="success">✅ OTP sent to your Telegram! Check the app.</span>';
-        } else {
-            alert(`🔐 OTP: ${otp}\nValid for 5 minutes`);
-            document.getElementById("loginMessage").innerHTML = '<span class="warning">⚠️ Telegram issue. OTP shown in popup.</span>';
-        }
-    };
-    
-    document.getElementById("verifyLoginBtn").onclick = () => {
-        if (!checkTime()) return;
-        const phone = document.getElementById("techPhone").value.trim();
-        const otp = document.getElementById("otpCode").value.trim();
-        if (!verifyOTP(phone, otp)) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Invalid or expired OTP</span>';
-        
+        currentTech = techName;
         isLoggedIn = true;
-        sessionStorage.setItem("loggedIn", JSON.stringify({ phone, time: Date.now() }));
-        document.getElementById("authStatus").innerHTML = `✅ Logged: ${phone}`;
+        sessionStorage.setItem("loggedIn", JSON.stringify({ name: techName, time: Date.now() }));
+        document.getElementById("authStatus").innerHTML = `✅ Logged: ${techName}`;
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("searchSection").style.display = "block";
+        document.getElementById("resultsBody").innerHTML = '<tr><td colspan="3" style="text-align:center;">🔍 Select a model and part, then click Search</td></tr>';
     };
     
     document.getElementById("logoutBtn").onclick = () => {
@@ -406,14 +307,14 @@
         document.getElementById("authStatus").innerHTML = "🔒 Not Logged In";
         document.getElementById("loginSection").style.display = "block";
         document.getElementById("searchSection").style.display = "none";
-        document.getElementById("techPhone").value = "";
-        document.getElementById("otpCode").value = "";
+        document.getElementById("techName").value = "";
         document.getElementById("modelSearch").value = "";
         document.getElementById("partSearch").value = "";
         checkTime();
     };
     
     function search() {
+        if (!isLoggedIn) return;
         const model = document.getElementById("modelSearch").value.trim().toLowerCase();
         const part = document.getElementById("partSearch").value.trim().toLowerCase();
         let results = masterParts;
@@ -421,7 +322,7 @@
         if (part) results = results.filter(p => p.part.toLowerCase().includes(part));
         
         if (results.length === 0) {
-            document.getElementById("resultsBody").innerHTML = '<td><td colspan="3">🔍 No results found</td></tr>';
+            document.getElementById("resultsBody").innerHTML = '<tr><td colspan="3" style="text-align:center;">🔍 No results found</td></tr>';
             return;
         }
         
@@ -435,7 +336,7 @@
     }
     
     function voiceSearch() {
-        if (!('webkitSpeechRecognition' in window)) return alert("Use Chrome browser for voice search");
+        if (!('webkitSpeechRecognition' in window)) return alert("Use Chrome browser");
         const recognition = new webkitSpeechRecognition();
         recognition.lang = 'en-US';
         recognition.onresult = (e) => {
@@ -454,11 +355,12 @@
     document.getElementById("modelSearch").onchange = updatePartDropdown;
     document.getElementById("partSearch").onkeypress = (e) => { if(e.key === 'Enter') search(); };
     
-    // RESTORE SESSION
+    // Restore session
     const saved = JSON.parse(sessionStorage.getItem("loggedIn") || '{}');
-    if (saved.phone && saved.time > Date.now() - 86400000 && isAuthorized(saved.phone) && isWithinAccessTime()) {
+    if (saved.name && saved.time > Date.now() - 86400000 && isAuthorized(saved.name) && isWithinAccessTime()) {
         isLoggedIn = true;
-        document.getElementById("authStatus").innerHTML = `✅ Logged: ${saved.phone}`;
+        currentTech = saved.name;
+        document.getElementById("authStatus").innerHTML = `✅ Logged: ${saved.name}`;
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("searchSection").style.display = "block";
     }
@@ -472,7 +374,6 @@
         checkTime();
     }, 60000);
     
-    buildPhoneSuggestions();
     loadData();
 </script>
 </body>
