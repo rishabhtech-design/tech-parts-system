@@ -24,7 +24,6 @@
             background: white;
             border-radius: 32px;
             box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
-            overflow: hidden;
             padding: 24px 28px;
         }
         h1 {
@@ -32,10 +31,9 @@
             margin: 0 0 6px 0;
             color: #1e2a3e;
             display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
             justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
         .badge {
             background: #eef2ff;
@@ -43,7 +41,6 @@
             padding: 6px 14px;
             border-radius: 40px;
             font-size: 0.8rem;
-            font-weight: 500;
         }
         .login-area, .search-area {
             background: #f8fafc;
@@ -88,10 +85,6 @@
         button:hover {
             background: #0f172a;
         }
-        button:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
-        }
         .otp-btn {
             background: #2c3e66;
         }
@@ -106,10 +99,10 @@
         }
         .flex-row {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
             gap: 14px;
-            align-items: center;
-            justify-content: space-between;
         }
         .results-table {
             overflow-x: auto;
@@ -119,7 +112,6 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
         }
         th {
             background: #f1f5f9;
@@ -133,28 +125,17 @@
         .highlight {
             background-color: #fef9c3;
             font-weight: bold;
-            border-radius: 12px;
             padding: 2px 4px;
+            border-radius: 8px;
         }
         .status {
             margin-top: 12px;
             font-size: 0.85rem;
-            color: #334155;
         }
-        .error {
-            color: #b91c1c;
-        }
-        .success {
-            color: #15803d;
-        }
-        .warning {
-            color: #b45309;
-        }
-        .info {
-            color: #2563eb;
-            font-size: 0.8rem;
-            margin-top: 5px;
-        }
+        .error { color: #b91c1c; }
+        .success { color: #15803d; }
+        .warning { color: #b45309; }
+        .info { color: #2563eb; font-size: 0.8rem; margin-top: 5px; }
         .time-restriction {
             background: #fef3c7;
             border: 1px solid #fde68a;
@@ -178,29 +159,30 @@
     </h1>
 
     <div id="timeRestrictionMsg" class="time-restriction" style="display: none;">
-        ⏰ Access is only allowed between <strong>9:30 AM to 6:00 PM</strong>. Please try again during working hours.
+        ⏰ Access is only allowed between <strong>9:30 AM to 6:00 PM</strong>
     </div>
 
+    <!-- LOGIN SECTION -->
     <div id="loginSection" class="login-area">
-        <h3>🔐 Daily Access (OTP)</h3>
-        <p>Enter your registered email address to receive OTP.</p>
+        <h3>🔐 Login with OTP</h3>
+        <p>Enter your registered mobile number to receive OTP</p>
         <div class="input-group">
             <div class="input-field">
-                <label>📧 Your Registered Email</label>
-                <input type="email" id="techEmail" placeholder="technician@example.com">
+                <label>📱 Mobile Number</label>
+                <input type="tel" id="techPhone" placeholder="+91 9876543210" list="phoneSuggestions">
+                <datalist id="phoneSuggestions"></datalist>
             </div>
             <div class="input-field">
                 <label>🔑 OTP Code</label>
                 <input type="text" id="otpCode" placeholder="6-digit code">
             </div>
-            <div style="display: flex; gap: 10px; align-items: flex-end;">
-                <button id="sendOtpBtn" class="otp-btn">📨 Get OTP</button>
-                <button id="verifyLoginBtn">✅ Login</button>
-            </div>
+            <button id="sendOtpBtn" class="otp-btn">📨 Get OTP</button>
+            <button id="verifyLoginBtn">✅ Login</button>
         </div>
         <div id="loginMessage" class="status"></div>
     </div>
 
+    <!-- SEARCH SECTION -->
     <div id="searchSection" style="display: none;">
         <div class="search-area">
             <div class="flex-row">
@@ -208,25 +190,22 @@
                 <button id="logoutBtn" class="logout-btn">🚪 Logout</button>
             </div>
             <div class="input-group">
-                <div class="input-field" style="flex:2">
-                    <label>📦 Select / Type Model Name</label>
-                    <input type="text" id="modelSearch" placeholder="e.g. Quartz Oven 28QOLCD1" list="modelSuggestions" autocomplete="off">
+                <div class="input-field">
+                    <label>📦 Model Name (type to see dropdown)</label>
+                    <input type="text" id="modelSearch" placeholder="Type model name..." list="modelSuggestions" autocomplete="off">
                     <datalist id="modelSuggestions"></datalist>
-                    <div class="info">💡 Select a model first to filter parts</div>
+                    <div class="info">💡 Type or click dropdown arrow to see all models</div>
                 </div>
-                <div class="input-field" style="flex:3">
-                    <label>🔧 Part Name (type or speak)</label>
+                <div class="input-field">
+                    <label>🔧 Part Name (type to see dropdown)</label>
                     <div style="display: flex; gap: 8px;">
-                        <input type="text" id="partSearch" placeholder="e.g. Dehydration Tray, Fan Motor" list="partSuggestions" autocomplete="off" style="flex:4">
-                        <button id="voiceSearchBtn" class="voice-btn" style="flex:0;">🎤 Speak</button>
+                        <input type="text" id="partSearch" placeholder="Type or speak part name..." list="partSuggestions" autocomplete="off" style="flex:4">
+                        <button id="voiceSearchBtn" class="voice-btn">🎤 Speak</button>
                     </div>
                     <datalist id="partSuggestions"></datalist>
-                    <div class="info">✨ Parts will be filtered based on selected model</div>
+                    <div class="info">✨ Parts are automatically filtered by selected model</div>
                 </div>
-                <div>
-                    <label>⚡</label>
-                    <button id="searchBtn" style="background:#0f3b2c;">🔎 Search</button>
-                </div>
+                <button id="searchBtn" style="background:#0f3b2c; width:auto;">🔎 Search</button>
             </div>
             <div id="searchStatus" class="status"></div>
         </div>
@@ -239,19 +218,21 @@
                 <tbody id="resultsBody">
                     <tr><td colspan="3" style="text-align:center;">✨ Login and search to see part codes ✨</td></tr>
                 </tbody>
-            </table>
+            20
         </div>
     </div>
 </div>
 
 <script>
     // ============================================================
-    // AUTHORIZED EMAILS - ONLY THESE CAN ACCESS
+    // AUTHORIZED MOBILE NUMBERS - ONLY THESE CAN LOGIN
     // ============================================================
-    
-    const AUTHORIZED_EMAILS = [
-        "ifbrishabh@gmail.com",
-        "sparepartsrish@gmail.com"
+    const AUTHORIZED_PHONES = [
+        "+919971549285",   // Your number
+        "+919876543211",   // Add more technician numbers here
+        "+919876543212",   // Add more technician numbers here
+        "+919876543213",   // Add more technician numbers here
+        "+919876543214"    // Add more technician numbers here
     ];
     
     // ============================================================
@@ -259,248 +240,190 @@
     let masterParts = [];
     let isLoggedIn = false;
     
+    // TIME RESTRICTION: 9:30 AM to 6:00 PM
     function isWithinAccessTime() {
         const now = new Date();
         const hours = now.getHours();
         const minutes = now.getMinutes();
-        const currentTime = hours * 60 + minutes;
-        const startTime = 9 * 60 + 30;
-        const endTime = 18 * 60;
-        return currentTime >= startTime && currentTime <= endTime;
+        const currentMinutes = hours * 60 + minutes;
+        return currentMinutes >= (9 * 60 + 30) && currentMinutes <= (18 * 60);
     }
     
-    function checkTimeAndShowMessage() {
-        if (!isWithinAccessTime()) {
+    function checkTime() {
+        const allowed = isWithinAccessTime();
+        if (!allowed) {
             document.getElementById("timeRestrictionMsg").style.display = "block";
             document.getElementById("sendOtpBtn").disabled = true;
             document.getElementById("verifyLoginBtn").disabled = true;
-            document.getElementById("loginMessage").innerHTML = `<span class="warning">⏰ System is only accessible between 9:30 AM to 6:00 PM.</span>`;
-            return false;
         } else {
             document.getElementById("timeRestrictionMsg").style.display = "none";
             document.getElementById("sendOtpBtn").disabled = false;
             document.getElementById("verifyLoginBtn").disabled = false;
-            return true;
         }
+        return allowed;
     }
     
-    function isAuthorizedEmail(email) {
-        return AUTHORIZED_EMAILS.includes(email.toLowerCase());
+    function isAuthorized(phone) {
+        return AUTHORIZED_PHONES.includes(phone);
     }
     
-    async function loadMasterData() {
+    // Build phone suggestions dropdown
+    function buildPhoneSuggestions() {
+        document.getElementById("phoneSuggestions").innerHTML = AUTHORIZED_PHONES.map(p => `<option value="${p}">`).join('');
+    }
+    
+    // LOAD PARTS DATA
+    async function loadData() {
         try {
             const response = await fetch('./oven_data.json');
-            if (!response.ok) throw new Error('oven_data.json not found');
-            const jsonData = await response.json();
-            masterParts = jsonData.map(row => ({
-                model: (row["MODEL NAME"] || "").toString().trim(),
-                part: (row["PART NAME"] || "").toString().trim(),
-                code: (row["PART CODE"] || "").toString().trim()
+            if (!response.ok) throw new Error('File not found');
+            const data = await response.json();
+            masterParts = data.map(row => ({
+                model: (row["MODEL NAME"] || "").trim(),
+                part: (row["PART NAME"] || "").trim(),
+                code: (row["PART CODE"] || "").trim()
             })).filter(p => p.model && p.part && p.code);
             
-            const modelSet = new Set();
-            masterParts.forEach(p => modelSet.add(p.model));
-            const modelList = [...modelSet].sort();
-            document.getElementById("modelSuggestions").innerHTML = modelList.map(m => `<option value="${m.replace(/"/g, '&quot;')}">`).join('');
+            // Build model dropdown (unique models)
+            const models = [...new Set(masterParts.map(p => p.model))].sort();
+            document.getElementById("modelSuggestions").innerHTML = models.map(m => `<option value="${m}">`).join('');
             
-            document.getElementById("searchStatus").innerHTML = `<span class="success">✅ Loaded ${masterParts.length} parts from ${modelList.length} models</span>`;
-            updatePartDropdown("");
-        } catch (err) {
-            document.getElementById("searchStatus").innerHTML = `<span class="error">❌ Error: oven_data.json missing. Upload it to the same folder.</span>`;
+            document.getElementById("searchStatus").innerHTML = `<span class="success">✅ Loaded ${masterParts.length} parts from ${models.length} models</span>`;
+        } catch(err) {
+            document.getElementById("searchStatus").innerHTML = `<span class="error">❌ oven_data.json missing - upload it to GitHub</span>`;
         }
     }
     
-    function updatePartDropdown(selectedModel) {
-        let partsToShow = [];
-        if (selectedModel && selectedModel.trim() !== "") {
-            partsToShow = masterParts.filter(p => p.model.toLowerCase() === selectedModel.toLowerCase()).map(p => p.part);
-            partsToShow = [...new Set(partsToShow)];
+    // Update part dropdown based on selected model (like Excel filter)
+    function updatePartDropdown() {
+        const selectedModel = document.getElementById("modelSearch").value.trim();
+        let parts = [];
+        
+        if (selectedModel) {
+            // Show only parts from selected model
+            parts = [...new Set(masterParts.filter(p => p.model.toLowerCase() === selectedModel.toLowerCase()).map(p => p.part))];
         } else {
-            partsToShow = [...new Set(masterParts.map(p => p.part))];
+            // Show all parts if no model selected
+            parts = [...new Set(masterParts.map(p => p.part))];
         }
-        partsToShow.sort();
-        document.getElementById("partSuggestions").innerHTML = partsToShow.map(part => `<option value="${part.replace(/"/g, '&quot;')}">`).join('');
+        parts.sort();
+        document.getElementById("partSuggestions").innerHTML = parts.map(p => `<option value="${p}">`).join('');
     }
     
+    // OTP FUNCTIONS
     function generateOTP() {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
     
-    function storeOTP(email, otp) {
-        const expiry = Date.now() + (24 * 60 * 60 * 1000);
-        localStorage.setItem(`otp_${email}`, JSON.stringify({ otp, expiry, email }));
+    function storeOTP(phone, otp) {
+        localStorage.setItem(`otp_${phone}`, JSON.stringify({ otp, expiry: Date.now() + 300000 })); // 5 minutes expiry
     }
     
-    function verifyOTP(email, enteredOtp) {
-        const raw = localStorage.getItem(`otp_${email}`);
-        if (!raw) return false;
-        const data = JSON.parse(raw);
-        if (data.email !== email) return false;
-        if (Date.now() > data.expiry) return false;
-        return data.otp === enteredOtp;
+    function verifyOTP(phone, otp) {
+        const data = JSON.parse(localStorage.getItem(`otp_${phone}`) || '{}');
+        return data.otp === otp && data.expiry > Date.now();
     }
     
-    // Send OTP - POPUP MODE (no email needed)
-    document.getElementById("sendOtpBtn").addEventListener("click", () => {
-        if (!isWithinAccessTime()) {
-            document.getElementById("loginMessage").innerHTML = `<span class="warning">⏰ Access only between 9:30 AM to 6:00 PM.</span>`;
-            return;
-        }
-        
-        const technicianEmail = document.getElementById("techEmail").value.trim().toLowerCase();
-        if (!technicianEmail || !technicianEmail.includes("@")) {
-            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Enter a valid email address.</span>`;
-            return;
-        }
-        
-        if (!isAuthorizedEmail(technicianEmail)) {
-            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Access Denied. Your email is not registered. Contact admin.</span>`;
-            return;
-        }
+    // EVENTS
+    document.getElementById("sendOtpBtn").onclick = () => {
+        if (!checkTime()) return;
+        const phone = document.getElementById("techPhone").value.trim();
+        if (!phone) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Enter mobile number</span>';
+        if (!isAuthorized(phone)) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Number not authorized</span>';
         
         const otp = generateOTP();
-        storeOTP(technicianEmail, otp);
-        
-        // Show OTP in popup
-        alert(`🔐 Your OTP code for ${technicianEmail} is: ${otp}\n\nThis code is valid for 24 hours.`);
-        document.getElementById("loginMessage").innerHTML = `<span class="success">✅ OTP generated! Check the popup window for your code.</span>`;
-    });
+        storeOTP(phone, otp);
+        alert(`🔐 Your OTP is: ${otp}\nValid for 5 minutes`);
+        document.getElementById("loginMessage").innerHTML = '<span class="success">✅ OTP sent! Check popup.</span>';
+    };
     
-    document.getElementById("verifyLoginBtn").addEventListener("click", () => {
-        if (!isWithinAccessTime()) {
-            document.getElementById("loginMessage").innerHTML = `<span class="warning">⏰ Access only between 9:30 AM to 6:00 PM.</span>`;
-            return;
-        }
-        
-        const email = document.getElementById("techEmail").value.trim().toLowerCase();
+    document.getElementById("verifyLoginBtn").onclick = () => {
+        if (!checkTime()) return;
+        const phone = document.getElementById("techPhone").value.trim();
         const otp = document.getElementById("otpCode").value.trim();
+        if (!verifyOTP(phone, otp)) return document.getElementById("loginMessage").innerHTML = '<span class="error">❌ Invalid or expired OTP</span>';
         
-        if (!email || !otp) {
-            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Email and OTP required.</span>`;
-            return;
-        }
-        
-        if (!isAuthorizedEmail(email)) {
-            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Access Denied. Your email is not registered.</span>`;
-            return;
-        }
-        
-        if (verifyOTP(email, otp)) {
-            isLoggedIn = true;
-            sessionStorage.setItem("tech_logged_in", JSON.stringify({ loggedIn: true, email, timestamp: Date.now() }));
-            document.getElementById("authStatus").innerHTML = `✅ Logged: ${email}`;
-            document.getElementById("loginSection").style.display = "none";
-            document.getElementById("searchSection").style.display = "block";
-            document.getElementById("loginMessage").innerHTML = "";
-        } else {
-            document.getElementById("loginMessage").innerHTML = `<span class="error">❌ Invalid or expired OTP. Get a new OTP.</span>`;
-        }
-    });
+        isLoggedIn = true;
+        sessionStorage.setItem("loggedIn", JSON.stringify({ phone, time: Date.now() }));
+        document.getElementById("authStatus").innerHTML = `✅ Logged: ${phone}`;
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("searchSection").style.display = "block";
+    };
     
-    function restoreSession() {
-        if (!isWithinAccessTime()) return;
-        const saved = sessionStorage.getItem("tech_logged_in");
-        if (saved) {
-            try {
-                const { loggedIn, email, timestamp } = JSON.parse(saved);
-                if (loggedIn && email && (Date.now() - timestamp < 24*3600*1000) && isAuthorizedEmail(email)) {
-                    isLoggedIn = true;
-                    document.getElementById("authStatus").innerHTML = `✅ Logged: ${email}`;
-                    document.getElementById("loginSection").style.display = "none";
-                    document.getElementById("searchSection").style.display = "block";
-                }
-            } catch(e) {}
-        }
-    }
-    
-    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    document.getElementById("logoutBtn").onclick = () => {
         isLoggedIn = false;
-        sessionStorage.removeItem("tech_logged_in");
+        sessionStorage.clear();
         document.getElementById("authStatus").innerHTML = "🔒 Not Logged In";
         document.getElementById("loginSection").style.display = "block";
         document.getElementById("searchSection").style.display = "none";
-        document.getElementById("techEmail").value = "";
+        document.getElementById("techPhone").value = "";
         document.getElementById("otpCode").value = "";
         document.getElementById("modelSearch").value = "";
         document.getElementById("partSearch").value = "";
-        checkTimeAndShowMessage();
-    });
+        checkTime();
+    };
     
-    function performSearch() {
-        if (!isLoggedIn) {
-            alert("Please login first.");
-            return;
-        }
-        const modelInput = document.getElementById("modelSearch").value.trim().toLowerCase();
-        const partInput = document.getElementById("partSearch").value.trim().toLowerCase();
+    function search() {
+        const model = document.getElementById("modelSearch").value.trim().toLowerCase();
+        const part = document.getElementById("partSearch").value.trim().toLowerCase();
+        let results = masterParts;
+        if (model) results = results.filter(p => p.model.toLowerCase().includes(model));
+        if (part) results = results.filter(p => p.part.toLowerCase().includes(part));
         
-        let filtered = masterParts;
-        if (modelInput) filtered = filtered.filter(p => p.model.toLowerCase().includes(modelInput));
-        if (partInput) filtered = filtered.filter(p => p.part.toLowerCase().includes(partInput));
-        
-        if (filtered.length === 0) {
-            document.getElementById("resultsBody").innerHTML = `<tr><td colspan="3" style="text-align:center;">🔍 No matching parts found</td></tr>`;
+        if (results.length === 0) {
+            document.getElementById("resultsBody").innerHTML = '<tr><td colspan="3">🔍 No results found</td></tr>';
             return;
         }
         
-        const tbody = document.getElementById("resultsBody");
-        tbody.innerHTML = "";
-        for (let row of filtered) {
-            const tr = document.createElement("tr");
-            let modelDisplay = modelInput ? row.model.replace(new RegExp(`(${escapeRegex(modelInput)})`, 'gi'), `<span class="highlight">$1</span>`) : row.model;
-            let partDisplay = partInput ? row.part.replace(new RegExp(`(${escapeRegex(partInput)})`, 'gi'), `<span class="highlight">$1</span>`) : row.part;
-            tr.innerHTML = `<td style="white-space: pre-wrap;">${modelDisplay}</td><td style="white-space: pre-wrap;">${partDisplay}</td><td style="font-weight:500; font-family:monospace;">${row.code}</td>`;
-            tbody.appendChild(tr);
-        }
+        document.getElementById("resultsBody").innerHTML = results.map(row => `
+            <tr>
+                <td>${model ? row.model.replace(new RegExp(`(${model})`, 'gi'), '<span class="highlight">$1</span>') : row.model}</td>
+                <td>${part ? row.part.replace(new RegExp(`(${part})`, 'gi'), '<span class="highlight">$1</span>') : row.part}</td>
+                <td style="font-weight:bold">${row.code}</td>
+            </tr>
+        `).join('');
     }
     
-    function escapeRegex(str) {
-        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-    
-    function startVoiceSearch() {
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert("Voice not supported. Use Chrome browser.");
-            return;
-        }
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
+    function voiceSearch() {
+        if (!('webkitSpeechRecognition' in window)) return alert("Use Chrome browser for voice search");
+        const recognition = new webkitSpeechRecognition();
         recognition.lang = 'en-US';
+        recognition.onresult = (e) => {
+            document.getElementById("partSearch").value = e.results[0][0].transcript;
+            search();
+        };
         recognition.start();
         const voiceBtn = document.getElementById("voiceSearchBtn");
         voiceBtn.textContent = "🎙️ Listening...";
-        recognition.onresult = (event) => {
-            const spoken = event.results[0][0].transcript;
-            document.getElementById("partSearch").value = spoken;
-            voiceBtn.textContent = "🎤 Speak";
-            performSearch();
-        };
-        recognition.onerror = () => {
-            voiceBtn.textContent = "🎤 Speak";
-            alert("Could not hear you. Please type.");
-        };
-        recognition.onend = () => { voiceBtn.textContent = "🎤 Speak"; };
+        recognition.onend = () => voiceBtn.textContent = "🎤 Speak";
     }
     
-    document.getElementById("searchBtn").addEventListener("click", performSearch);
-    document.getElementById("voiceSearchBtn").addEventListener("click", startVoiceSearch);
-    document.getElementById("partSearch").addEventListener("keypress", (e) => { if (e.key === "Enter") performSearch(); });
-    document.getElementById("modelSearch").addEventListener("keypress", (e) => { if (e.key === "Enter") performSearch(); });
-    document.getElementById("modelSearch").addEventListener("input", (e) => { updatePartDropdown(e.target.value); });
-    document.getElementById("modelSearch").addEventListener("change", (e) => { updatePartDropdown(e.target.value); });
+    document.getElementById("searchBtn").onclick = search;
+    document.getElementById("voiceSearchBtn").onclick = voiceSearch;
+    document.getElementById("modelSearch").oninput = updatePartDropdown;
+    document.getElementById("modelSearch").onchange = updatePartDropdown;
+    document.getElementById("partSearch").onkeypress = (e) => { if(e.key === 'Enter') search(); };
     
-    checkTimeAndShowMessage();
+    // RESTORE SESSION
+    const saved = JSON.parse(sessionStorage.getItem("loggedIn") || '{}');
+    if (saved.phone && saved.time > Date.now() - 86400000 && isAuthorized(saved.phone) && isWithinAccessTime()) {
+        isLoggedIn = true;
+        document.getElementById("authStatus").innerHTML = `✅ Logged: ${saved.phone}`;
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("searchSection").style.display = "block";
+    }
+    
+    checkTime();
     setInterval(() => {
-        checkTimeAndShowMessage();
         if (isLoggedIn && !isWithinAccessTime()) {
-            alert("Access time has ended (9:30 AM - 6:00 PM). You will be logged out.");
+            alert("Access time ended (9:30 AM - 6:00 PM). Logging out.");
             document.getElementById("logoutBtn").click();
         }
+        checkTime();
     }, 60000);
     
-    loadMasterData();
-    restoreSession();
+    buildPhoneSuggestions();
+    loadData();
 </script>
 </body>
 </html>
